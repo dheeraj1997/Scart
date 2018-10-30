@@ -5,6 +5,7 @@ var csrf = require('csurf');
 var Product = require('../models/productModel');
 var User = require('../models/userModel');
 var Cart = require('../models/cart');
+var Order = require('../models/order');
 
 var csrfProtection = csrf();
 router.use(csrfProtection);
@@ -45,7 +46,7 @@ router.get('/shopping-cart', function (req, res, next) {
     res.render('shop/shopping-cart',{products:cart.generateArray(), totalPrice: cart.totalPrice});
 });
 
-router.get('/checkout',function (req, res, next) {
+router.get('/checkout', isLoggedIn, function (req, res, next) {
     console.log('csrf Token: ', req.csrfToken());
     if(!req.session.cart){
         return res.redirect('/shopping-cart');
@@ -55,7 +56,7 @@ router.get('/checkout',function (req, res, next) {
     res.render('shop/checkout',{total:cart.totalPrice, errMsg, noErrors: !errMsg, csrfToken: req.csrfToken()});
 });
 
-router.post('/checkout', function (req, res, next) {
+router.post('/checkout', isLoggedIn, function (req, res, next) {
     if(!req.session.cart){
         return res.redirect('/shopping-cart');
     }
@@ -74,11 +75,31 @@ router.post('/checkout', function (req, res, next) {
             req.flash('error', err.message);
             return res.redirect('/checkout');
         }
-        req.flash('success', 'Successfully bought the product.');
-        req.session.cart = null;
-        res.redirect('/');
+        var order = new Order({
+            user: req.user,
+            cart: cart,
+            address: req.body.address,
+            name: req.body.name,
+            paymentId: charge.id
+        });
+        order.save(function (err, result) {
+            if(err){
+                console.log('error occurred');
+            }
+            req.flash('success', 'Successfully bought the product.');
+            req.session.cart = null;
+            res.redirect('/');
+        });
 
     });
 });
 
 module.exports = router;
+
+function isLoggedIn(req, res, next) {
+    if(req.isAuthenticated()){
+        return next();
+    }
+    req.session.oldURL = req.url;
+    res.redirect('/user/signin');
+}
