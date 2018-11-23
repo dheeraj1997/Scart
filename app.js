@@ -16,7 +16,7 @@ var routes = require('./routes/index');
 var userRoutes = require('./routes/user');
 
 var app = express();
-mongoose.connect('mongodb://localhost:27017/shopping');
+mongoose.connect('mongodb://deru:test1234@ds123963.mlab.com:23963/shopping');
 require('./config/passport');
 
 // view engine setup
