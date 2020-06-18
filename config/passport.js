@@ -18,6 +18,7 @@ passport.use('local.signup', new LocalStrategy({
     passwordField:'password',
     passReqToCallback: true
 }, function (req, email, password, done) {
+    console.log(req.body);
     req.checkBody('email','Invalid email').notEmpty().isEmail();
     req.checkBody('password','Invalid password').notEmpty().isLength({min:4});
     var errors = req.validationErrors();
@@ -38,6 +39,9 @@ passport.use('local.signup', new LocalStrategy({
         var newUser = new User();
         newUser.email = email;
         newUser.password = newUser.encryptPassword(password);
+        newUser.name = req.body.name;
+        newUser.address = req.body.address;
+        newUser.dob = req.body.dob;
         newUser.save(function (err, result) {
             if(err){
                 return done(err);
@@ -52,6 +56,7 @@ passport.use('local.signin', new LocalStrategy({
     passwordField: 'password',
     passReqToCallback:true
 }, function (req,email,password,done){
+    console.log(req.body);
     req.checkBody('email','Invalid email').notEmpty().isEmail();
     req.checkBody('password','Invalid password').notEmpty().isLength({min:4});
     var errors = req.validationErrors();
@@ -63,6 +68,7 @@ passport.use('local.signin', new LocalStrategy({
         return done(null, false, req.flash('error',messages));
     }
     User.findOne({'email':email}, function (err, user) {
+        console.log(user);
         if(err) {
             return done(err);
         }
@@ -71,6 +77,9 @@ passport.use('local.signin', new LocalStrategy({
         }
         if(!user.validPassword(password)){
             return done(null, false, {message:'Password incorrect.'})
+        }
+        if(req.body.fromAdmin && !user.isAdmin){
+            return done(null, false, {message:'Not authorised for this action.'})
         }
         return done(null, user);
     })

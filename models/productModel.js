@@ -3,6 +3,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var productSchema = new Schema({
+    productId: {type:Number},
     imagePath: {type:String, required:true},
     title: {type:String, required:true},
     description: {type:String, required:true},

@@ -56,6 +56,27 @@ router.get('/checkout', isLoggedIn, function (req, res, next) {
     res.render('shop/checkout',{total:cart.totalPrice, errMsg, noErrors: !errMsg, csrfToken: req.csrfToken()});
 });
 
+router.get('/clear-cart', function (req, res, next) {
+    req.session.cart= {};
+    res.redirect('/');
+});
+
+router.post('/add-product', isLoggedIn, function (req, res, next) {
+    var productDetails = req.body;
+    console.log(productDetails);
+    var newProduct = new Product({
+        imagePath: productDetails.imagePath,
+        title: productDetails.title,
+        description: productDetails.description,
+        price: productDetails.price
+    });
+    newProduct.save().then(function(err,result){
+        console.log('result', result);
+        req.flash('success', 'Successfully added the product.');
+        res.redirect('/user/admin-profile');
+    });
+});
+
 router.post('/checkout', isLoggedIn, function (req, res, next) {
     if(!req.session.cart){
         return res.redirect('/shopping-cart');

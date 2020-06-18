@@ -16,7 +16,7 @@ var routes = require('./routes/index');
 var userRoutes = require('./routes/user');
 
 var app = express();
-mongoose.connect('mongodb://localhost:27017/shopping');
+mongoose.connect('mongodb://localhost:27017/shopping', {useNewUrlParser: true});
 require('./config/passport');
 
 // view engine setup
@@ -44,6 +44,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.use(function (req, res, next) {
+    res.locals.isAdmin = 0;
     res.locals.loggedIn = req.isAuthenticated();
     res.locals.session = req.session;
     next();
